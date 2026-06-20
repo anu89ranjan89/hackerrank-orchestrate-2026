@@ -3,31 +3,14 @@ import pandas as pd
 import os
 from PIL import Image
 
-
-import os
-import streamlit as st
-
-st.write("Working Directory:", os.getcwd())
-
-try:
-    st.write("Files:", os.listdir("."))
-except Exception as e:
-    st.write("Error listing files:", e)
-
-st.write("output.csv exists?", os.path.exists("output.csv"))
-
-if os.path.exists("output.csv"):
-    st.success("output.csv found!")
-else:
-    st.error("output.csv NOT found!")
-
 st.set_page_config(
     page_title="AI Damage Claim Inspector",
     layout="wide",
     page_icon="⚡"
 )
 
-OUTPUT_PATH = "output.csv"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_PATH = os.path.join(BASE_DIR, "output.csv")
 
 st.title("⚡ AI Multi-Modal Damage Claim System")
 
@@ -70,7 +53,7 @@ st.caption("Agentic AI system for insurance claim verification using vision + re
 # LOAD DATA
 # ---------------------------
 if not os.path.exists(OUTPUT_PATH):
-    st.warning("⚠️ Run pipeline first to generate output.csv")
+    st.error(f"output.csv not found at: {OUTPUT_PATH}")
     st.stop()
 
 df = pd.read_csv(OUTPUT_PATH)
