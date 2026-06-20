@@ -1,18 +1,46 @@
-# Environment variables
-.env
-*.env
-
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Virtual environments
+# Virtual Environments
 venv/
+env/
 .venv/
 
-# Outputs
-output.csv
-evaluation/
+# Environment Variables
+.env
 
+# IDE Files
 .vscode/
 .idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Streamlit Cache
+.streamlit/secrets.toml
+
+# Logs
+*.log
+
+# Keep output.csv but ignore other csv files if needed
+*.csv
+!output.csv
+
+# Large cache files
+cache/
+
+# Python build files
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+
+evaluation/
