@@ -4,9 +4,22 @@ import os
 from PIL import Image
 
 
-st.write("Current directory:", os.getcwd())
-st.write("Files in current directory:", os.listdir("."))
-st.write("output.csv exists:", os.path.exists("output.csv"))
+import os
+import streamlit as st
+
+st.write("Working Directory:", os.getcwd())
+
+try:
+    st.write("Files:", os.listdir("."))
+except Exception as e:
+    st.write("Error listing files:", e)
+
+st.write("output.csv exists?", os.path.exists("output.csv"))
+
+if os.path.exists("output.csv"):
+    st.success("output.csv found!")
+else:
+    st.error("output.csv NOT found!")
 
 st.set_page_config(
     page_title="AI Damage Claim Inspector",
