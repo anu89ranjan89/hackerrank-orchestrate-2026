@@ -34,7 +34,7 @@ def extract_claim(user_claim):
     elif any(word in text for word in ["shatter", "shattered"]):
         issue = "glass_shatter"
 
-    elif any(word in text for word in ["broken", "damaged"]):
+    elif any(word in text for word in ["broken", "damaged", "damage"]):
         issue = "broken_part"
 
     elif "missing" in text:

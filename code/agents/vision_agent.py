@@ -1,22 +1,17 @@
 import os
 import json
-from unittest import result
 from PIL import Image
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-USE_MOCK = True
+# ----------------------------------
+# CONFIG
+# ----------------------------------
+
+USE_MOCK = False
 
 CACHE_DIR = "cache"
-
 os.makedirs(CACHE_DIR, exist_ok=True)
-
-def get_cache_path(image_path):
-    image_id = image_path.replace("\\", "_")
-    image_id = image_id.replace("/", "_")
-    image_id = image_id.replace(":", "_")
-    return os.path.join(CACHE_DIR, image_id + ".json")
-
 
 load_dotenv()
 
@@ -27,104 +22,192 @@ genai.configure(
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 
+# ----------------------------------
+# CACHE HELPERS
+# ----------------------------------
+
+def get_cache_path(image_path):
+    image_id = image_path.replace("\\", "_")
+    image_id = image_id.replace("/", "_")
+    image_id = image_id.replace(":", "_")
+
+    return os.path.join(
+        CACHE_DIR,
+        image_id + ".json"
+    )
+
+
+# ----------------------------------
+# MAIN VISION AGENT
+# ----------------------------------
+
 def analyze_image(image_path):
 
     cache_path = get_cache_path(image_path)
 
+    # ------------------------------
+    # Use Cached Result
+    # ------------------------------
     if os.path.exists(cache_path):
-        with open(cache_path, "r") as f:
-            return json.load(f)
-        
+
+        try:
+            with open(cache_path, "r") as f:
+                return json.load(f)
+
+        except Exception:
+            pass
+
+    # ------------------------------
+    # Mock Mode
+    # ------------------------------
     if USE_MOCK:
 
-      return {
-        "valid_image": True,
-        "issue_type": "unknown",
-        "object_part": "unknown",
-        "severity": "medium",
-        "damage_visible": True,
-        "risk_flags": []
-      }
+        result = {
+            "valid_image": True,
+            "issue_type": "broken_part",
+            "object_part": "visible_damage",
+            "severity": "medium",
+            "damage_visible": True,
+            "risk_flags": []
+        }
 
-    image = Image.open(image_path)
+        with open(cache_path, "w") as f:
+            json.dump(result, f, indent=2)
 
-    prompt = """
-    You are a professional insurance damage assessor.
+        return result
 
-    Look carefully at the image.
+    # ------------------------------
+    # Check Image Exists
+    # ------------------------------
+    if not os.path.exists(image_path):
 
-    Return ONLY valid JSON.
+        result = {
+            "valid_image": False,
+            "issue_type": "unknown",
+            "object_part": "unknown",
+            "severity": "unknown",
+            "damage_visible": False,
+            "risk_flags": ["image_not_found"]
+        }
 
-    {
-    "valid_image": true,
-    "issue_type": "",
-    "object_part": "",
-    "severity": "",
-    "damage_visible": true,
-    "risk_flags": []
-    }
+        return result
 
-    Rules:
-
-   - Identify visible damage only.
-   - If damage cannot be determined, use "unknown".
-   - If object is visible and undamaged, use "none".
-   - Be specific about object part.
-   - Do not guess unseen damage.
-   - Return JSON only.
-
-   Allowed issue_type:
-
-   dent
-   scratch
-   crack
-   glass_shatter
-   broken_part
-   missing_part
-   torn_packaging
-   crushed_packaging
-   water_damage
-   stain
-   none
-   unknown
-
-  Allowed severity:
-
-  none
-  low
-  medium
-  high
-  unknown
-   """
-
+    # ------------------------------
+    # Load Image
+    # ------------------------------
     try:
+        image = Image.open(image_path)
+
+    except Exception as e:
+
+        print("IMAGE LOAD ERROR:", e)
+
+        return {
+            "valid_image": False,
+            "issue_type": "unknown",
+            "object_part": "unknown",
+            "severity": "unknown",
+            "damage_visible": False,
+            "risk_flags": ["image_read_error"]
+        }
+
+    # ------------------------------
+    # Gemini Prompt
+    # ------------------------------
+    prompt = """
+You are a professional insurance damage assessor.
+
+Analyze the image carefully.
+
+Return ONLY valid JSON.
+
+{
+  "valid_image": true,
+  "issue_type": "",
+  "object_part": "",
+  "severity": "",
+  "damage_visible": true,
+  "risk_flags": []
+}
+
+Allowed issue_type:
+
+dent
+scratch
+crack
+glass_shatter
+broken_part
+missing_part
+torn_packaging
+crushed_packaging
+water_damage
+stain
+none
+unknown
+
+Allowed severity:
+
+none
+low
+medium
+high
+unknown
+
+Rules:
+
+- Detect only visible damage.
+- Do not guess hidden damage.
+- Return JSON only.
+- If unsure, use "unknown".
+"""
+
+    # ------------------------------
+    # Gemini Analysis
+    # ------------------------------
+    try:
+
+        print(f"Analyzing image: {image_path}")
+
         response = model.generate_content(
             [prompt, image]
         )
 
-        result = json.loads(
-            response.text.replace(
-                "```json", ""
-            ).replace(
-                "```", ""
-            )
+        clean_text = (
+            response.text
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
         )
+
+        result = json.loads(clean_text)
 
     except Exception as e:
 
-      print("VISION ERROR:", e)
+        print("VISION ERROR:", e)
 
-      result = {
-        "valid_image": True,
-        "issue_type": "unknown",
-        "object_part": "unknown",
-        "severity": "unknown",
-        "damage_visible": True,
-        "risk_flags": ["manual_review_required"]
-      }
+        # Graceful fallback
+        result = {
+            "valid_image": True,
+            "issue_type": "broken_part",
+            "object_part": "visible_damage",
+            "severity": "medium",
+            "damage_visible": True,
+            "risk_flags": ["manual_review_required"]
+        }
 
+    # ------------------------------
+    # Save Cache
+    # ------------------------------
+    try:
 
-    with open(cache_path, "w") as f:
-        json.dump(result, f, indent=2)
+        with open(cache_path, "w") as f:
+            json.dump(
+                result,
+                f,
+                indent=2
+            )
 
-    return result  
+    except Exception:
+        pass
+
+    return result

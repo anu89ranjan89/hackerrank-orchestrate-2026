@@ -3,101 +3,215 @@ import pandas as pd
 import os
 from PIL import Image
 
+# -----------------------------------
+# PAGE CONFIG
+# -----------------------------------
+
 st.set_page_config(
     page_title="AI Damage Claim Inspector",
-    layout="wide",
-    page_icon="⚡"
+    page_icon="⚡",
+    layout="wide"
 )
 
+# -----------------------------------
+# CUSTOM CSS
+# -----------------------------------
+
+st.markdown("""
+<style>
+
+.main {
+    padding-top: 1rem;
+}
+
+.block-container {
+    padding-top: 2rem;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------------
+# PATHS
+# -----------------------------------
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_PATH = os.path.join(BASE_DIR, "output.csv")
 
-st.title("⚡ AI Multi-Modal Damage Claim System")
+OUTPUT_PATH = os.path.join(
+    BASE_DIR,
+    "output.csv"
+)
 
-# ---------------------------
-# 🎬 DEMO MODE
-# ---------------------------
+DATASET_DIR = os.path.join(
+    os.path.dirname(BASE_DIR),
+    "dataset"
+)
+
+# -----------------------------------
+# HEADER
+# -----------------------------------
+
+st.title("⚡ AI Multi-Modal Damage Claim Inspector")
+
+st.markdown("""
+### Agentic AI System for Insurance Claim Verification
+
+**Pipeline**
+
+Claim Agent → Vision Agent → Evidence Agent → Risk Agent → Decision Agent → Final Verdict
+""")
+
+# -----------------------------------
+# DEMO MODE
+# -----------------------------------
+
 st.markdown("## 🎬 Demo Mode")
 
-demo_mode = st.button("▶️ Run Guided Judge Demo")
-
-if demo_mode:
+if st.button("▶️ Run Guided Judge Demo"):
 
     st.info("Running automated judge walkthrough...")
 
     st.markdown("### Step 1: Claim Understanding")
-    st.write("AI extracts structured damage info from user claim")
+    st.write("AI extracts structured damage information from the claim.")
 
     st.markdown("### Step 2: Vision Analysis")
-    st.write("Gemini Vision detects actual damage in image")
+    st.write("Vision Agent analyzes uploaded evidence images.")
 
     st.markdown("### Step 3: Semantic Matching")
-    st.write("System maps dent ≈ broken_part instead of strict matching")
+    st.write("Damage categories are matched semantically.")
 
     st.markdown("### Step 4: Evidence Evaluation")
-    st.write("Checks if image supports claim logically")
+    st.write("Evidence Agent validates visual support.")
 
-    st.markdown("### Step 5: Risk Scoring")
-    st.write("Fraud probability is computed using AI confidence + consistency")
+    st.markdown("### Step 5: Risk Assessment")
+    st.write("Risk Agent estimates fraud indicators.")
 
     st.markdown("### Step 6: Final Decision")
-    st.success("SUPPORTED / CONTRADICTED / UNCERTAIN generated with explanation")
+    st.success("Supported / Contradicted verdict generated.")
 
-    st.markdown("---")
-    st.success("🎯 Demo Complete — System demonstrates full AI reasoning pipeline")
-
-
-st.caption("Agentic AI system for insurance claim verification using vision + reasoning")
-
-# ---------------------------
+# -----------------------------------
 # LOAD DATA
-# ---------------------------
+# -----------------------------------
+
 if not os.path.exists(OUTPUT_PATH):
-    st.error(f"output.csv not found at: {OUTPUT_PATH}")
+
+    st.error("❌ output.csv not found")
     st.stop()
 
 df = pd.read_csv(OUTPUT_PATH)
-filtered = df
 
-# ---------------------------
+# -----------------------------------
 # METRICS
-# ---------------------------
+# -----------------------------------
+
+st.divider()
+
+supported = (df["claim_status"] == "supported").sum()
+contradicted = (df["claim_status"] == "contradicted").sum()
+uncertain = (df["claim_status"] == "not_enough_information").sum()
+
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Total Claims", len(filtered))
-col2.metric("Supported", (filtered["claim_status"] == "supported").sum())
-col3.metric("Contradicted", (filtered["claim_status"] == "contradicted").sum())
-col4.metric("Uncertain", (filtered["claim_status"] == "not_enough_information").sum())
+col1.metric("Total Claims", len(df))
+col2.metric("Supported", supported)
+col3.metric("Contradicted", contradicted)
+col4.metric("Uncertain", uncertain)
+
+# -----------------------------------
+# ANALYTICS
+# -----------------------------------
 
 st.divider()
 
-# ---------------------------
+st.subheader("📈 System Analytics")
+
+c1, c2, c3 = st.columns(3)
+
+c1.metric(
+    "Average Confidence",
+    f"{round(df['confidence_score'].mean() * 100)}%"
+)
+
+c2.metric(
+    "Average Fraud Risk",
+    f"{round(df['fraud_score'].mean())}/100"
+)
+
+c3.metric(
+    "Evidence Pass Rate",
+    f"{round(df['evidence_standard_met'].mean() * 100)}%"
+)
+
+st.divider()
+
+left, right = st.columns(2)
+
+with left:
+
+    st.subheader("📊 Verdict Distribution")
+
+    st.bar_chart(
+        df["claim_status"].value_counts()
+    )
+
+with right:
+
+    st.subheader("🚨 Severity Distribution")
+
+    st.bar_chart(
+        df["severity"].value_counts()
+    )
+
+# -----------------------------------
 # TABLE
-# ---------------------------
-st.subheader("📊 Claim Overview Table")
-st.dataframe(filtered, use_container_width=True)
+# -----------------------------------
 
 st.divider()
 
-# ---------------------------
-# INSPECTOR
-# ---------------------------
+st.subheader("📋 Claim Overview")
+
+st.dataframe(
+    df,
+    use_container_width=True
+)
+
+csv = df.to_csv(index=False)
+
+st.download_button(
+    "📥 Download Results CSV",
+    csv,
+    file_name="output.csv",
+    mime="text/csv"
+)
+
+# -----------------------------------
+# CLAIM INSPECTOR
+# -----------------------------------
+
+st.divider()
+
 st.subheader("🔍 Deep Claim Inspector")
 
-selected_user = st.selectbox("Select User ID", filtered["user_id"].unique())
+selected_user = st.selectbox(
+    "Select User ID",
+    df["user_id"].unique()
+)
 
-row = filtered[filtered["user_id"] == selected_user].iloc[0]
+row = df[df["user_id"] == selected_user].iloc[0]
 
-colA, colB = st.columns(2)
+left_panel, right_panel = st.columns(2)
 
-# ---------------------------
-# LEFT PANEL
-# ---------------------------
-with colA:
+# -----------------------------------
+# CLAIM DETAILS
+# -----------------------------------
+
+with left_panel:
 
     st.markdown("### 🧾 Claim Details")
 
-    st.write("**User Claim:**", row["user_claim"])
+    st.write("**Claim:**")
+    st.write(row["user_claim"])
+
     st.write("**Object:**", row["claim_object"])
     st.write("**Issue Type:**", row["issue_type"])
     st.write("**Object Part:**", row["object_part"])
@@ -106,17 +220,24 @@ with colA:
 
     if status == "supported":
         st.success("SUPPORTED CLAIM ✅")
+
     elif status == "contradicted":
         st.error("CONTRADICTED CLAIM ❌")
+
     else:
-        st.warning("UNCERTAIN CLAIM ⚠️")
+        st.warning("NOT ENOUGH INFORMATION ⚠️")
 
-    st.info(row["claim_status_justification"])
+    st.markdown("### 📌 Decision Reason")
 
-# ---------------------------
-# RIGHT PANEL
-# ---------------------------
-with colB:
+    st.info(
+        row["claim_status_justification"]
+    )
+
+# -----------------------------------
+# AI ANALYSIS
+# -----------------------------------
+
+with right_panel:
 
     st.markdown("### 🤖 AI Analysis")
 
@@ -124,62 +245,136 @@ with colB:
 
     st.write("**Severity:**", severity)
 
-    if severity == "medium":
-        st.info("⚠️ Medium severity detected")
-    elif severity == "high":
-        st.error("🔴 High severity detected")
+    if severity == "high":
+        st.error("🔴 High Severity")
+
+    elif severity == "medium":
+        st.warning("🟠 Medium Severity")
+
     elif severity == "low":
-        st.success("🟢 Low severity detected")
-    else:
-        st.warning("❓ Unknown severity")
+        st.success("🟢 Low Severity")
 
-    st.markdown("### 🧠 AI Confidence Score")
+    confidence = float(
+        row.get(
+            "confidence_score",
+            0.5
+        )
+    )
 
-    confidence = row.get("confidence_score", 0.5)
+    st.markdown("### 🧠 Confidence Score")
 
     st.progress(confidence)
-    st.metric("Confidence", f"{int(confidence * 100)}%")
 
-    st.markdown("### 🚨 Fraud Risk Meter")
+    st.metric(
+        "Confidence",
+        f"{int(confidence * 100)}%"
+    )
 
-    fraud = row.get("fraud_score", 50)
+    fraud_score = int(
+        row.get(
+            "fraud_score",
+            50
+        )
+    )
 
-    if fraud >= 70:
-        st.error(f"🔴 HIGH FRAUD RISK: {fraud}/100")
-    elif fraud >= 40:
-        st.warning(f"🟠 MEDIUM FRAUD RISK: {fraud}/100")
-    else:
-        st.success(f"🟢 LOW FRAUD RISK: {fraud}/100")
+    st.markdown("### 🚨 Fraud Risk")
 
-    st.progress(fraud / 100)
+    st.progress(
+        fraud_score / 100
+    )
 
-    st.write("**Risk Flags:**", row["risk_flags"])
-    st.write("**Evidence Met:**", row["evidence_standard_met"])
+    st.metric(
+        "Fraud Score",
+        f"{fraud_score}/100"
+    )
 
-    st.code(row["evidence_standard_met_reason"])
+    st.markdown("### ⚠️ Risk Flags")
 
-# ---------------------------
+    st.code(
+        str(row["risk_flags"])
+    )
+
+    st.markdown("### 📑 Evidence Status")
+
+    st.write(
+        row["evidence_standard_met"]
+    )
+
+    st.code(
+        row["evidence_standard_met_reason"]
+    )
+
+    if "ai_explanation" in row:
+
+        st.markdown(
+            "### 🧠 AI Explanation"
+        )
+
+        st.info(
+            row["ai_explanation"]
+        )
+
+# -----------------------------------
 # IMAGES
-# ---------------------------
+# -----------------------------------
+
 st.divider()
+
 st.subheader("🖼️ Evidence Images")
 
-image_paths = str(row["image_paths"]).split(";")
-img_cols = st.columns(len(image_paths))
+image_paths = str(
+    row["image_paths"]
+).split(";")
 
-for i, img_path in enumerate(image_paths):
+cols = st.columns(
+    len(image_paths)
+)
 
-    full_path = os.path.join("..", "dataset", img_path.strip())
+for idx, img_path in enumerate(
+    image_paths
+):
 
-    with img_cols[i]:
-        if os.path.exists(full_path):
-            img = Image.open(full_path)
-            st.image(img, use_container_width=True)
+    clean_path = (
+        img_path
+        .strip()
+        .replace("\\", "/")
+    )
+
+    full_path = os.path.join(
+        DATASET_DIR,
+        clean_path
+    )
+
+    with cols[idx]:
+
+        if os.path.exists(
+            full_path
+        ):
+
+            image = Image.open(
+                full_path
+            )
+
+            st.image(
+                image,
+                caption=f"Evidence {idx+1}",
+                use_container_width=True
+            )
+
         else:
-            st.error("Image not found")
 
-# ---------------------------
+            st.warning(
+                f"Image {idx+1} not found"
+            )
+
+# -----------------------------------
 # DEBUG
-# ---------------------------
-with st.expander("🧠 Raw AI Output"):
-    st.json(row.to_dict())
+# -----------------------------------
+
+with st.expander(
+    "🧠 Raw AI Output"
+):
+
+    st.json(
+        row.to_dict()
+    )

@@ -112,6 +112,11 @@ def run_pipeline():
         # 2. Vision Agent
         image_path = get_first_image(row["image_paths"])
         vision_info = analyze_image(image_path)
+        print("=" * 60)
+        print("USER:", user_id)
+        print("CLAIM ISSUE:", claim_info.get("issue_type"))
+        print("VISION ISSUE:", vision_info.get("issue_type"))
+        print("VISION INFO:", vision_info)
 
         # 3. Evidence Agent
         evidence_met, evidence_reason = check_evidence_standard(
@@ -132,28 +137,36 @@ def run_pipeline():
         # ---------------------------
         # Semantic + Confidence
         # ---------------------------
+        
         matched, family = semantic_match(
-            claim_info.get("issue_type"),
-            vision_info.get("issue_type")
+          claim_info.get("issue_type"),
+          vision_info.get("issue_type")
         )
 
-        confidence = 0.0
-
         if claim_info.get("issue_type") == vision_info.get("issue_type"):
-            confidence = 0.95
+         confidence = 0.95
+
         elif matched:
-            confidence = 0.80
+         confidence = 0.80
+
+        elif vision_info.get("issue_type") == "unknown":
+         confidence = 0.50
+
         else:
-            confidence = 0.40
+         confidence = 0.25
+
 
         # ---------------------------
         # NEW: Fraud Score
         # ---------------------------
         fraud_score = compute_fraud_score(
-            decision["claim_status"],
-            vision_info.get("severity", "medium"),
-            confidence
+          decision["claim_status"],
+          vision_info.get("severity", "medium"),
+          confidence
         )
+
+        if "manual_review_required" in risk_flags:
+         fraud_score = min(100, fraud_score + 10)
 
         # ---------------------------
         # NEW: Explanation
@@ -169,31 +182,29 @@ def run_pipeline():
         # Store result
         # ---------------------------
         results.append({
-            "user_id": user_id,
-            "image_paths": row["image_paths"],
-            "user_claim": claim_text,
-            "claim_object": claim_object,
+         "user_id": user_id,
+         "image_paths": row["image_paths"],
+         "user_claim": claim_text,
+         "claim_object": claim_object,
 
-            "issue_type": claim_info.get("issue_type"),
-            "object_part": claim_info.get("object_part"),
+         "issue_type": claim_info.get("issue_type"),
+         "object_part": claim_info.get("object_part"),
 
-            "valid_image": vision_info.get("valid_image"),
-            "severity": vision_info.get("severity"),
+         "valid_image": vision_info.get("valid_image"),
+         "severity": vision_info.get("severity"),
 
-            "risk_flags": risk_flags,
+         "risk_flags": str(risk_flags),
 
-            "evidence_standard_met": evidence_met,
-            "evidence_standard_met_reason": evidence_reason,
+         "evidence_standard_met": evidence_met,
+         "evidence_standard_met_reason": evidence_reason,
 
-            "claim_status": decision["claim_status"],
-            "claim_status_justification": decision["reason"],
+         "claim_status": decision["claim_status"],
+         "claim_status_justification": decision["reason"],
 
-            # OLD
-            "confidence_score": confidence,
+         "confidence_score": round(confidence, 2),
+         "fraud_score": round(fraud_score, 2),
 
-            # NEW UPGRADES
-            "fraud_score": fraud_score,
-            "ai_explanation": explanation
+         "ai_explanation": explanation
         })
 
     out_df = pd.DataFrame(results)
