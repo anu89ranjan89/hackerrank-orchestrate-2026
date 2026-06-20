@@ -1,110 +1,212 @@
-AI Multi-Modal Damage Claim Verification System
-HackerRank Orchestrate 2026
+# ⚡ AI Multi-Modal Damage Claim Verification System
 
-An Agentic AI system that automates insurance damage claim verification using image evidence, claim understanding, semantic reasoning, risk analysis, and explainable AI.
+### HackerRank Orchestrate 2026 Submission
 
-Problem Statement
+An Agentic AI system that automates insurance damage claim verification using image evidence, claim understanding, semantic reasoning, fraud risk assessment, and explainable AI.
 
-Insurance claim verification is traditionally a manual process requiring human reviewers to inspect evidence, compare it with customer claims, and determine whether the claim is valid.
+## 🚀 Live Demo
+
+**Streamlit Deployment:**
+
+https://hackerrank-orchestrate-2026-4a7ixwttahgyn3i3hvfhtz.streamlit.app/
+
+---
+
+## 📌 Problem Statement
+
+Insurance companies process thousands of damage claims every day.
+
+Traditional claim verification requires human reviewers to:
+
+* Inspect uploaded evidence
+* Understand customer claims
+* Compare visual and textual information
+* Detect inconsistencies
+* Assess fraud risk
 
 This process is:
 
-Time-consuming
-Expensive
-Difficult to scale
-Vulnerable to fraud
+* ⏳ Time-consuming
+* 💰 Expensive
+* 📈 Difficult to scale
+* 🚨 Vulnerable to fraudulent claims
 
-Our goal was to build an AI-powered system capable of analyzing damage claims automatically using both textual and visual evidence.
+The objective of this project is to automate claim verification using an Agentic AI pipeline capable of reasoning across both text and images.
 
-Solution Overview
+---
 
-The system combines multiple specialized AI agents to evaluate claims.
+## 🏗️ Solution Overview
 
-Workflow
+The system is designed as a multi-agent architecture where each agent performs a specialized task.
+
+### Workflow
+
+```text
 User Claim
-     ↓
+      ↓
 Claim Agent
-     ↓
+      ↓
 Vision Agent
-     ↓
+      ↓
 Evidence Agent
-     ↓
+      ↓
 Risk Agent
-     ↓
+      ↓
 Decision Agent
-     ↓
+      ↓
 Confidence Scoring
-     ↓
+      ↓
 Fraud Scoring
-     ↓
-Final Decision
-Agents
-Claim Agent
+      ↓
+Final Verdict
+```
 
-Extracts structured information from claim text.
+The final verdict is generated using both textual and visual evidence.
 
-Example:
+---
 
-Input:
+## 🤖 AI Agents
 
+### 1️⃣ Claim Agent
+
+Extracts structured damage information from natural language claims.
+
+**Input**
+
+```text
 My car door got dented after an accident.
+```
 
-Output:
+**Output**
 
+```json
 {
   "issue_type": "dent",
   "object_part": "door"
 }
-Vision Agent
+```
+
+---
+
+### 2️⃣ Vision Agent
 
 Analyzes uploaded images using Gemini Vision.
 
 Extracts:
 
-Damage type
-Damaged part
-Severity
-Image validity
-Visibility of damage
-Evidence Agent
+* Damage type
+* Damaged object part
+* Severity
+* Image validity
+* Damage visibility
 
-Checks whether visual evidence satisfies the evidence requirements.
+---
 
-Risk Agent
+### 3️⃣ Evidence Agent
 
-Evaluates risk indicators and flags suspicious claims.
+Evaluates whether the uploaded evidence sufficiently supports the claim.
 
-Decision Agent
+Checks:
+
+* Damage visibility
+* Image validity
+* Evidence consistency
+
+---
+
+### 4️⃣ Risk Agent
+
+Identifies suspicious patterns and risk indicators.
+
+Examples:
+
+* Ambiguous claims
+* High-risk wording
+* Missing evidence
+* Manual review triggers
+
+---
+
+### 5️⃣ Decision Agent
 
 Produces one of the following outcomes:
 
-supported
-contradicted
-not_enough_information
+| Verdict                | Description                       |
+| ---------------------- | --------------------------------- |
+| Supported              | Claim aligns with visual evidence |
+| Contradicted           | Claim conflicts with evidence     |
+| Not Enough Information | Evidence is insufficient          |
 
-The system also performs semantic matching between claim descriptions and detected damage.
+---
 
-Key Features
-Multi-Modal AI (Vision + Text)
-Agent-Based Architecture
-Semantic Damage Matching
-Confidence Scoring
-Fraud Risk Assessment
-Explainable AI
-Streamlit Dashboard
-Image Analysis Caching
-Dashboard Features
+## 🧠 Semantic Damage Matching
 
-The Streamlit dashboard provides:
+The system performs semantic reasoning instead of strict keyword matching.
 
-Claim Overview
-Claim Inspector
-Evidence Viewer
-Confidence Score Visualization
-Fraud Risk Meter
-AI Decision Explanation
-Judge Demo Mode
-Project Structure
+Examples:
+
+```text
+dent ≈ deformation
+broken_part ≈ missing_part
+glass_shatter ≈ crack
+```
+
+This improves robustness when claim descriptions and visual outputs use different terminology.
+
+---
+
+## 📊 Key Features
+
+* ✅ Multi-Modal AI (Vision + Text)
+* ✅ Agent-Based Architecture
+* ✅ Semantic Damage Matching
+* ✅ Confidence Scoring
+* ✅ Fraud Risk Assessment
+* ✅ Explainable AI
+* ✅ Streamlit Dashboard
+* ✅ Evidence Validation
+* ✅ Image Analysis Caching
+* ✅ Interactive Claim Inspector
+
+---
+
+## 🖥️ Dashboard Features
+
+The Streamlit application provides:
+
+### 📋 Claim Overview Table
+
+View all processed claims and system decisions.
+
+### 🔍 Deep Claim Inspector
+
+Inspect individual claims with detailed AI analysis.
+
+### 🧠 Confidence Visualization
+
+Displays model confidence for each decision.
+
+### 🚨 Fraud Risk Meter
+
+Shows estimated fraud risk score.
+
+### 🖼️ Evidence Viewer
+
+Displays uploaded claim images.
+
+### 🤖 AI Explanation Engine
+
+Provides human-readable reasoning behind each verdict.
+
+### 🎬 Guided Judge Demo Mode
+
+Walkthrough of the complete AI reasoning pipeline.
+
+---
+
+## 📂 Project Structure
+
+```text
 code/
 │
 ├── agents/
@@ -115,36 +217,67 @@ code/
 │   └── decision_agent.py
 │
 ├── cache/
+│
 ├── generate_output.py
 ├── ui_app.py
 ├── output.csv
-Installation
+│
+dataset/
+│
+README.md
+requirements.txt
+```
 
-Install dependencies:
+---
 
-pip install -r requirements.txt
-Generate Predictions
-python generate_output.py
 
-Output:
+## 🛠️ Technologies Used
 
-output.csv generated successfully
-Launch Dashboard
-streamlit run ui_app.py
-Technologies Used
-Python
-Streamlit
-Pandas
-Pillow
-Gemini Vision API
-Future Improvements
-Fine-grained severity estimation
-Advanced fraud detection models
-Improved semantic matching
-Support for additional claim categories
+### AI & Machine Learning
 
-Author
+* Gemini Vision API
+* Agentic AI Architecture
 
-Anupriya Ranjan
+### Backend
 
-Built for HackerRank Orchestrate 2026.
+* Python
+
+### Data Processing
+
+* Pandas
+
+### Frontend
+
+* Streamlit
+
+### Image Processing
+
+* Pillow
+
+---
+
+## 📈 Future Improvements
+
+* Fine-grained severity estimation
+* Advanced fraud detection models
+* Hybrid vision ensemble models
+* Enhanced semantic reasoning
+* Multi-image evidence fusion
+* Real-time claim processing APIs
+* Human-in-the-loop review workflow
+
+---
+
+## 👩‍💻 Author
+
+**Anupriya Ranjan**
+
+Built for **HackerRank Orchestrate 2026**
+
+Exploring Agentic AI, Generative AI, Open Source, and Intelligent Systems.
+
+---
+
+## ⭐ Acknowledgements
+
+This project was developed as part of the HackerRank Orchestrate 2026 challenge to explore the application of Agentic AI systems in insurance claim verification and fraud detection.
