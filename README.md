@@ -12,6 +12,40 @@ https://hackerrank-orchestrate-2026-4a7ixwttahgyn3i3hvfhtz.streamlit.app/
 
 ---
 
+##   📸 Screenshots
+
+### Dashboard Overview
+![Dashboard](screenshots/dashboard_overview.png)
+
+### System Analytics
+![System](screenshots/system_analytics.png)
+
+### Claim Overview
+
+![Data](screenshots/claim_overview.png)
+![Data](screenshots/claim_overview2.png)
+
+### Claim Inspector
+
+![Inspector](screenshots/claim_inspector.png)
+
+### Claim Analysis
+
+![Claim](screenshots/claim_analysis.png)
+
+### AI Explanation
+![Explanation](screenshots/explanation.png)
+
+### Evidence Viewer
+
+![Evidence](screenshots/evidence.png)
+
+### Raw AI Output
+
+![Raw_OUTPUT](screenshots/raw_output.png)
+
+
+
 ## 📌 Problem Statement
 
 Insurance companies process thousands of damage claims every day.
