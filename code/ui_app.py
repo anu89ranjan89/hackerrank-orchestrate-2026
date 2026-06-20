@@ -3,6 +3,11 @@ import pandas as pd
 import os
 from PIL import Image
 
+
+st.write("Current directory:", os.getcwd())
+st.write("Files in current directory:", os.listdir("."))
+st.write("output.csv exists:", os.path.exists("output.csv"))
+
 st.set_page_config(
     page_title="AI Damage Claim Inspector",
     layout="wide",
